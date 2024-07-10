@@ -3,7 +3,7 @@ Title: Phantasus package demo
 Version: 0.0.1
 Authors@R: 
      person("Alexey", "Sergushichev", email = "alsergbox@gmail.com", role = c("aut", "cre"))
-Description: This phantasus package demo for BioC 2024 conference.
+Description: This is phantasus package demo for BioC 2024 conference.
     It shows basic setup and usage of Phantasus web-application 
     and additional helper functions.
 License: MIT + file LICENSE
