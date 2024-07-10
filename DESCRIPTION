@@ -1,16 +1,11 @@
-Package: BuildABiocWorkshop
-Title: Bioconductor or R Workshop Template and Github Actions
-Version: 2.0.1
+Package: phantasusPkgDemo
+Title: Phantasus package demo
+Version: 0.0.1
 Authors@R: 
-    person(given = "Sean",
-           family = "Davis",
-           role = c("aut", "cre"),
-           email = "seandavi@gmail.com",
-           comment = c(ORCID = "0000-0002-8991-6458"))
-Description: This package serves as a template for using github actions to 
-    prepare a Bioconductor Workshop package for use. In particular,
-    a pkgdown website and docker image are generated based on workflow 
-    settings. 
+     person("Alexey", "Sergushichev", email = "alsergbox@gmail.com", role = c("aut", "cre"))
+Description: This phantasus package demo for BioC 2024 conference.
+    It shows basic setup and usage of Phantasus web-application 
+    and additional helper functions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,8 +16,12 @@ Depends:
 Suggests: 
     knitr,
     rmarkdown,
-    pkgdown
-URL: https://seandavi.github.io/BuildABiocWorkshop/
-BugReports: https://github.com/seandavi/BuildABiocWorkshop/issues/new/choose
+    pkgdown,
+    phantasus,
+    phantasusLite,
+    opencpu,
+    unix
+URL: https://github.com/assaron/phantasusPkgDemo/
+BugReports: https://github.com/assaron/phantasusPkgDemo/
 VignetteBuilder: knitr
-DockerImage: ghcr.io/seandavi/buildabiocworkshop:latest
+DockerImage: ghcr.io/assaron/phnatasusPkgDemo:latest
