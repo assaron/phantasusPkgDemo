@@ -21,7 +21,7 @@ Suggests:
     phantasusLite,
     opencpu,
     unix
-URL: https://github.com/assaron/phantasusPkgDemo/
+URL: https://assaron.github.io/phantasusPkgDemo/
 BugReports: https://github.com/assaron/phantasusPkgDemo/
 VignetteBuilder: knitr
 DockerImage: ghcr.io/assaron/phnatasuspkgdemo:latest
