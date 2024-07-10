@@ -24,4 +24,4 @@ Suggests:
 URL: https://github.com/assaron/phantasusPkgDemo/
 BugReports: https://github.com/assaron/phantasusPkgDemo/
 VignetteBuilder: knitr
-DockerImage: ghcr.io/assaron/phnatasusPkgDemo:latest
+DockerImage: ghcr.io/assaron/phnatasuspkgdemo:latest
