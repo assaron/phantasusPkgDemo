@@ -1,0 +1,162 @@
+---
+title: "Easy access, interactive exploration and analysis of public gene expression datasets with Phantasus"
+author: 
+    - name: Alexey Sergushichev
+    - email: alsergbox@gmail.com
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{An Example Workshop}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Easy access, interactive exploration and analysis of public gene expression datasets with Phantasus
+
+Authors: Alexey Sergushichev.
+    <br/>
+Last modified: 12 July, 2024.
+
+## Overview
+
+### Description
+
+Phantasus is web application for gene expression analysis that integrates highly interactive client-side JavaScript heatmap interface with an R-based back-end.
+
+First, we will go over the basic setup of Phantasus as an R package and its functionality.
+Then we will explore several helpful functions of a companion phantasusLite R package
+to load RNA-seq counts for NCBI GEO datasets from R environment.
+
+### _R_ / _Bioconductor_ packages used
+
+List of _R_ / _Bioconductor_ packages that we will use:
+
+```{r message=FALSE}
+library(phantasus)
+library(phantasusLite)
+library(GEOquery)
+library(limma)
+```
+
+### Phantasus setup
+
+Setting up Phantasus. Creating config file and downloading files with gene annotations and pathways.
+
+```{r}
+setupPhantasus()
+```
+
+Let's explore config a bit:
+```{r}
+configFile <- file.path(tools::R_user_dir(package = "phantasus", 
+                                           which = "config"), "user.conf")
+readLines(configFile) |> writeLines()
+```
+
+Starting the server. Usually this options can be left with default values `background=FALSE` and `openInBrowser=TRUE`,
+but we need it in a workshop/markdown setup. Directory `preloaded` option can be changed in the config,
+but for the workshop we'll use option to set it.
+
+```{r}
+preloadedDir <- tempdir()
+server <- servePhantasus(background=TRUE, openInBrowser = FALSE, preloadedDir = preloadedDir)
+```
+
+Open Phantasus in the browser.
+
+```{r eval=FALSE}
+browseURL("http://localhost:8000/")
+```
+
+Using GEO dataset identifier as a parameter in URL:
+
+```{r eval=FALSE}
+browseURL("http://localhost:8000/phantasus/index.html?geo=GSE53986")
+```
+
+Example of ExpressionSet being saved as a preloaded dataset.
+
+```{r}
+gse14308 <- getGEO("GSE14308", AnnotGPL = TRUE)[[1]]
+gse14308$condition <- sub("-.*$", "", gse14308$title)
+pData(gse14308) <- pData(gse14308)[, c("title", "geo_accession", "condition")]
+gse14308 <- gse14308[, order(gse14308$condition)]
+
+fData(gse14308) <- fData(gse14308)[, c("Gene ID", "Gene symbol")]
+exprs(gse14308) <- normalizeBetweenArrays(log2(exprs(gse14308)+1), method="quantile")
+
+ess <- list(GSE14308_norm=gse14308)
+
+save(ess, file=file.path(preloadedDir, "GSE14308_norm.rda"))
+```
+
+Open the preloaded URL:
+
+```{r eval=FALSE}
+browseURL("http://localhost:8000/phantasus/index.html?preloaded=GSE14308_norm")
+```
+
+Stopping server:
+
+```{r}
+server$stop()
+```
+
+### Loading precomputed RNA-seq counts for GEO datasets in R
+
+Let's load dataset GSE53053 from GEO using `GEOquery` package:
+
+```{r message=FALSE}
+ess <- getGEO("GSE53053")
+es <- ess[[1]]
+```
+
+RNA-seq dataset from GEO do not contain the expression matrix, thus `exprs(es)` is empty:
+
+```{r}
+head(exprs(es))
+```
+
+However, a number of precomputed gene count tables are available at HSDS server  '<https://alserglab.wustl.edu/hsds/>'. It features HDF5 files with counts
+from ARCHS4 and DEE2 projects:
+
+```{r}
+url <- 'https://alserglab.wustl.edu/hsds/?domain=/counts'
+getHSDSFileList(url)
+```
+
+GSE53053 dataset was sequenced from *Mus musculus* and we can get an expression matrix
+from the corresponding HDF5-file with DEE2 data:
+
+```{r}
+file <- "dee2/mmusculus_star_matrix_20240409.h5"
+es <- loadCountsFromH5FileHSDS(es, url, file)
+head(exprs(es))
+```
+
+Normally `loadCountsFromHSDS` can be used to automatically select the HDF5-file with the largest
+number of quantified samples:
+
+```{r}
+es <- ess[[1]]
+es <- loadCountsFromHSDS(es, url)
+head(exprs(es))
+```
+
+The counts are different from the previous values as ARCHS4 counts were used -- ARCHS4 is prioritized when there are several files with the same number of samples:
+
+```{r}
+preproc(experimentData(es))$gene_counts_source
+```
+
+Further, gene symbols are also imported from ARCHS4 database and are available as feature data:
+```{r}
+head(fData(es))
+```
