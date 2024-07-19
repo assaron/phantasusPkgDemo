@@ -20,21 +20,20 @@ knitr::opts_chunk$set(
 
 # Easy access, interactive exploration and analysis of public gene expression datasets with Phantasus
 
-Authors: Alexey Sergushichev.
-    <br/>
-Last modified: 12 July, 2024.
+Author: Alexey Sergushichev.
+
 
 ## Overview
 
-### Description
+Phantasus is a web tool designed for visual and interactive gene expression analysis. In particular, it was designed to allow to go from a typical dataset to differential expression and downstream analysis in an easy and streamlined manner. For that aim, Phantasus integrates an intuitive JavaScript heatmap interface with gene expression analysis tools from Bioconductor. Phantasus can be used at its official mirror <https://alserglab.wustl.edu/phantasus> or install locally as an R package or a docker image. 
 
-Phantasus is web application for gene expression analysis that integrates highly interactive client-side JavaScript heatmap interface with an R-based back-end.
-
-First, we will go over the basic setup of Phantasus as an R package and its functionality.
+In this vignette, we will go over the basic setup of Phantasus as an R package and its functionality.
 Then we will explore several helpful functions of a companion phantasusLite R package
 to load RNA-seq counts for NCBI GEO datasets from R environment.
 
-### _R_ / _Bioconductor_ packages used
+More documentation on how to install and use Phantasus is available at <https://ctlab.github.io/phantasus-doc/>.
+
+## _R_ / _Bioconductor_ packages used
 
 List of _R_ / _Bioconductor_ packages that we will use:
 
@@ -45,43 +44,61 @@ library(GEOquery)
 library(limma)
 ```
 
-### Phantasus setup
+## Phantasus setup
 
-Setting up Phantasus. Creating config file and downloading files with gene annotations and pathways.
+Before starting a Phantasus server from R we need to configure it. 
+For this we can use interactive `setupPhantasus()` function. 
+It will create a configuration file and suggest to download files with gene annotations and pathways.
 
 ```{r}
 setupPhantasus()
 ```
 
-Let's explore config a bit:
+Let's explore config a bit. The most important options that might be edited are:
+1) `host` and `port` to control where the server will be listening, and
+2) `preloaded_dir` pointing to a directory with the preloaded datasets (more on that later).
+More detailed description of the configuration file is available at <https://ctlab.github.io/phantasus-doc/installation.html#configuration>.
+
 ```{r}
 configFile <- file.path(tools::R_user_dir(package = "phantasus", 
                                            which = "config"), "user.conf")
 readLines(configFile) |> writeLines()
 ```
 
-Starting the server. Usually this options can be left with default values `background=FALSE` and `openInBrowser=TRUE`,
-but we need it in a workshop/markdown setup. Directory `preloaded` option can be changed in the config,
-but for the workshop we'll use option to set it.
+Now we can start a server with `servePhantasus()` function. 
+Usually it can be ran with the default arguments, however for this vignette 
+we will set several options: `background=TRUE` makes server start in the background,
+`openInBrowser=FALSE` prevents automatic opening of the browser with Phantasus.
+Preloaded directory is recommended to be set by editing the configuration
+file, but also can be set via `preloaded` option.
 
 ```{r}
-preloadedDir <- tempdir()
+preloadedDir <- file.path(getwd(), "preloaded")
+dir.create(preloadedDir)
 server <- servePhantasus(background=TRUE, openInBrowser = FALSE, preloadedDir = preloadedDir)
 ```
 
-Open Phantasus in the browser.
+After server has started we can open Phantasus in the browser:
 
 ```{r eval=FALSE}
 browseURL("http://localhost:8000/")
 ```
 
-Using GEO dataset identifier as a parameter in URL:
+Please refer to <https://ctlab.github.io/phantasus-doc/quick-start.html> for the vignette
+describing Phantasus functionality on the example of microarray dataset GSE53986.
+
+Phantasus can also supports RNA-seq datasets, for which it relies on data from ARCHS4 and DEE2 projects.
+For example, we can open RNA-seq dataset GSE53053 by passing directly in the URL:
 
 ```{r eval=FALSE}
-browseURL("http://localhost:8000/phantasus/index.html?geo=GSE53986")
+browseURL("http://localhost:8000/phantasus/index.html?geo=GSE53053")
 ```
 
-Example of ExpressionSet being saved as a preloaded dataset.
+A vignette describing analysis of RNA-seq dataset GSE53053 can be found at <https://ctlab.github.io/phantasus-doc/tutorials/GSE53053/>.
+
+A particular benefit of setting up Phantasus server is the ability to share
+preprocessed datasets. For example, let consider the dataset GSE14308
+which we can load and process using R:
 
 ```{r}
 gse14308 <- getGEO("GSE14308", AnnotGPL = TRUE)[[1]]
@@ -91,25 +108,27 @@ gse14308 <- gse14308[, order(gse14308$condition)]
 
 fData(gse14308) <- fData(gse14308)[, c("Gene ID", "Gene symbol")]
 exprs(gse14308) <- normalizeBetweenArrays(log2(exprs(gse14308)+1), method="quantile")
-
-ess <- list(GSE14308_norm=gse14308)
-
-save(ess, file=file.path(preloadedDir, "GSE14308_norm.rda"))
 ```
 
-Open the preloaded URL:
+We can save it as an RDA file into the preloaded folder: 
+
+```{r}
+save(gse14308, file=file.path(preloadedDir, "GSE14308_norm.rda"))
+```
+
+Now we can open it using URL like this (with removed file extension):
 
 ```{r eval=FALSE}
 browseURL("http://localhost:8000/phantasus/index.html?preloaded=GSE14308_norm")
 ```
 
-Stopping server:
+After we are done working we can stop the server:
 
 ```{r}
 server$stop()
 ```
 
-### Loading precomputed RNA-seq counts for GEO datasets in R
+## Loading precomputed RNA-seq counts for GEO datasets in R
 
 Let's load dataset GSE53053 from GEO using `GEOquery` package:
 
