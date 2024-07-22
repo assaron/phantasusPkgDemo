@@ -130,9 +130,11 @@ browseURL("http://localhost:8000/phantasus/index.html?preloaded=GSE53986_norm")
 Further, Phantasus can generate a session link with _File/Get session link..._, which 
 allows to reopen or share the session, preserving the visuals (color scheme, sorting, etc.).
 Such links can be used to generate preloaded datasets as well, which would also preserve the visuals.
+**Note:** session links generated from Phantasus instance within Bioconductor Workshop environment
+will not work here due to security restrictions.
 
 ```{r}
-sessionURL <- "https://alserglab.wustl.edu/phantasus/?session=x00000000000000" # use your own URL here
+sessionURL <- "https://alserglab.wustl.edu/phantasus/?session=x00000000000000" # example session URL
 generatePreloadedSession(sessionURL, preloadedName = "my_session", preloadedDir = preloadedDir)
 ```
 
