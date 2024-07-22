@@ -114,7 +114,7 @@ use:</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bioinf.wehi.edu.au/limma/" class="external-link">limma</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="phantasus-setup">Phantasus setup<a class="anchor" aria-label="anchor" href="#phantasus-setup"></a>
+<h3 id="working-with-local-installation-of-phantasus">Working with local installation of Phantasus<a class="anchor" aria-label="anchor" href="#working-with-local-installation-of-phantasus"></a>
 </h3>
 <p>Before starting a Phantasus server from R we need to configure it.
 For this we can use interactive <code><a href="https://rdrr.io/pkg/phantasus/man/setupPhantasus.html" class="external-link">setupPhantasus()</a></code> function.
@@ -160,78 +160,101 @@ detailed description of the configuration file is available at <a href="https://
 <span><span class="co">#&gt;     true_geo: "https://ftp.ncbi.nlm.nih.gov"</span></span>
 <span><span class="co">#&gt;     minimal_cache: "https://alserglab.wustl.edu/files/phantasus/minimal-cache/"</span></span></code></pre></div>
 <p>Now we can start a server with <code><a href="https://rdrr.io/pkg/phantasus/man/servePhantasus.html" class="external-link">servePhantasus()</a></code>
-function. Usually it can be ran with the default arguments, however for
-this vignette we will set several options: <code>background=TRUE</code>
-makes server start in the background, <code>openInBrowser=FALSE</code>
-prevents automatic opening of the browser with Phantasus. Preloaded
-directory is recommended to be set by editing the configuration file,
-but also can be set via <code>preloaded</code> option.</p>
+function. For simplicity we use a separate R session, starting it from
+the RStudio’s terminal. In the command we specify <code>preloaded</code>
+option, as it’s not set in the config file.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">preloadedDir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"preloaded"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">preloadedDir</span><span class="op">)</span></span>
-<span><span class="va">server</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/phantasus/man/servePhantasus.html" class="external-link">servePhantasus</a></span><span class="op">(</span>background<span class="op">=</span><span class="cn">TRUE</span>, openInBrowser <span class="op">=</span> <span class="cn">FALSE</span>, preloadedDir <span class="op">=</span> <span class="va">preloadedDir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Preloaded dir is not set</span></span>
-<span><span class="co">#&gt; 31 counts files are available</span></span>
-<span><span class="co">#&gt; 2 annotationDb are available</span></span>
-<span><span class="co">#&gt; 6 fgsea tables are available</span></span>
-<span><span class="co">#&gt; Server was started with following parameters: host=0.0.0.0, port=8000</span></span></code></pre></div>
-<p>After server has started we can open Phantasus in the browser:</p>
+<span><span class="va">serveCommand</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">'R --vanilla -e "phantasus::servePhantasus(preloaded=\'%s\')"'</span>, <span class="va">preloadedDir</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Using the following shell command:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Using the following shell command:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="va">serveCommand</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R --vanilla -e "phantasus::servePhantasus(preloaded='/__w/phantasusPkgDemo/phantasusPkgDemo/vignettes/preloaded')"</span></span></code></pre></div>
+<p>Actually executing the above command with the help of RStudio’s
+API:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">serverTerminal</span> <span class="op">&lt;-</span> <span class="fu">rstudioapi</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/rstudioapi/reference/terminalExecute.html" class="external-link">terminalExecute</a></span><span class="op">(</span><span class="va">serveCommand</span><span class="op">)</span></span></code></pre></div>
+<p>After the server has started we can open Phantasus in the
+browser:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">browseURL</a></span><span class="op">(</span><span class="st">"http://localhost:8000/"</span><span class="op">)</span></span></code></pre></div>
 <p>Please refer to <a href="https://ctlab.github.io/phantasus-doc/quick-start.html" class="external-link uri">https://ctlab.github.io/phantasus-doc/quick-start.html</a>
 for the vignette describing Phantasus functionality on the example of
-microarray dataset GSE53986.</p>
+microarray dataset GSE53986. <strong>Note:</strong> the official mirror
+<a href="https://alserglab.wustl.edu/phantasus/" class="external-link uri">https://alserglab.wustl.edu/phantasus/</a> can be used in
+case of problems setting up Phantasus in Bioconductor Workshop
+environment.</p>
 <p>Phantasus can also supports RNA-seq datasets, for which it relies on
 data from ARCHS4 and DEE2 projects. For example, we can open RNA-seq
 dataset GSE53053 by passing directly in the URL:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">browseURL</a></span><span class="op">(</span><span class="st">"http://localhost:8000/phantasus/index.html?geo=GSE53053"</span><span class="op">)</span></span></code></pre></div>
 <p>A vignette describing analysis of RNA-seq dataset GSE53053 can be
 found at <a href="https://ctlab.github.io/phantasus-doc/tutorials/GSE53053/" class="external-link uri">https://ctlab.github.io/phantasus-doc/tutorials/GSE53053/</a>.</p>
 <p>A particular benefit of setting up Phantasus server is the ability to
 share preprocessed datasets. For example, let consider the dataset
-GSE14308 which we can load and process using R:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">gse14308</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://seandavi.github.io/GEOquery/reference/getGEO.html" class="external-link">getGEO</a></span><span class="op">(</span><span class="st">"GSE14308"</span>, AnnotGPL <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; Found 1 file(s)</span></span>
-<span><span class="co">#&gt; GSE14308_series_matrix.txt.gz</span></span>
-<span><span class="va">gse14308</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"-.*$"</span>, <span class="st">""</span>, <span class="va">gse14308</span><span class="op">$</span><span class="va">title</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/phenoData.html" class="external-link">pData</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/phenoData.html" class="external-link">pData</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"geo_accession"</span>, <span class="st">"condition"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">gse14308</span> <span class="op">&lt;-</span> <span class="va">gse14308</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">$</span><span class="va">condition</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/featureData.html" class="external-link">fData</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/featureData.html" class="external-link">fData</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gene ID"</span>, <span class="st">"Gene symbol"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/normalizebetweenarrays.html" class="external-link">normalizeBetweenArrays</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log2</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">gse14308</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span>, method<span class="op">=</span><span class="st">"quantile"</span><span class="op">)</span></span></code></pre></div>
-<p>We can save it as an RDA file into the preloaded folder:</p>
+GSE53986 which we can load and process using R:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">gse14308</span>, file<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">preloadedDir</span>, <span class="st">"GSE14308_norm.rda"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">gse53986</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://seandavi.github.io/GEOquery/reference/getGEO.html" class="external-link">getGEO</a></span><span class="op">(</span><span class="st">"GSE53986"</span>, AnnotGPL <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co">#&gt; Found 1 file(s)</span></span>
+<span><span class="co">#&gt; GSE53986_series_matrix.txt.gz</span></span>
+<span><span class="va">gse53986</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="va">gse53986</span><span class="op">$</span><span class="va">`treatment:ch1`</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/phenoData.html" class="external-link">pData</a></span><span class="op">(</span><span class="va">gse53986</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/phenoData.html" class="external-link">pData</a></span><span class="op">(</span><span class="va">gse53986</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"geo_accession"</span>, <span class="st">"condition"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/featureData.html" class="external-link">fData</a></span><span class="op">(</span><span class="va">gse53986</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/featureData.html" class="external-link">fData</a></span><span class="op">(</span><span class="va">gse53986</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gene ID"</span>, <span class="st">"Gene symbol"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">gse53986</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/normalizebetweenarrays.html" class="external-link">normalizeBetweenArrays</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log2</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">gse53986</span><span class="op">)</span><span class="op">)</span>, method<span class="op">=</span><span class="st">"quantile"</span><span class="op">)</span></span></code></pre></div>
+<p>We can save it as an RDA file into the preloaded directory:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">gse53986</span>, file<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">preloadedDir</span>, <span class="st">"GSE53986_norm.rda"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Now we can open it using URL like this (with removed file
 extension):</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">browseURL</a></span><span class="op">(</span><span class="st">"http://localhost:8000/phantasus/index.html?preloaded=GSE14308_norm"</span><span class="op">)</span></span></code></pre></div>
-<p>After we are done working we can stop the server:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">server</span><span class="op">$</span><span class="kw">stop</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">browseURL</a></span><span class="op">(</span><span class="st">"http://localhost:8000/phantasus/index.html?preloaded=GSE53986_norm"</span><span class="op">)</span></span></code></pre></div>
+<p>Further, Phantasus can generate a session link with <em>File/Get
+session link…</em>, which allows to reopen or share the session,
+preserving the visuals (color scheme, sorting, etc.). Such links can be
+used to generate preloaded datasets as well, which would also preserve
+the visuals.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sessionURL</span> <span class="op">&lt;-</span> <span class="st">"https://alserglab.wustl.edu/phantasus/?session=x00000000000000"</span> <span class="co"># use your own URL here</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/phantasus/man/generatePreloadedSession.html" class="external-link">generatePreloadedSession</a></span><span class="op">(</span><span class="va">sessionURL</span>, preloadedName <span class="op">=</span> <span class="st">"my_session"</span>, preloadedDir <span class="op">=</span> <span class="va">preloadedDir</span><span class="op">)</span></span></code></pre></div>
+<p>This dataset now can be opened using the same-style URL as
+before:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">browseURL</a></span><span class="op">(</span><span class="st">"http://localhost:8000/phantasus/index.html?preloaded=my_session"</span><span class="op">)</span></span></code></pre></div>
+<p>After finishing working with Phantasus we can kill the process with
+Ctrl-C, or via RStudio API:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">rstudioapi</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/rstudioapi/reference/terminalKill.html" class="external-link">terminalKill</a></span><span class="op">(</span><span class="va">serverTerminal</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="loading-precomputed-rna-seq-counts-for-geo-datasets-in-r">Loading precomputed RNA-seq counts for GEO datasets in R<a class="anchor" aria-label="anchor" href="#loading-precomputed-rna-seq-counts-for-geo-datasets-in-r"></a>
 </h3>
-<p>Let’s load dataset GSE53053 from GEO using <code>GEOquery</code>
-package:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p>In this section we will explore how to use <code>phantasusLite</code>
+package to easily load precomputed RNA-seq matrices for GEO
+datasets.</p>
+<p>First, let’s load dataset GSE53053 from GEO using
+<code>GEOquery</code> package:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ess</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://seandavi.github.io/GEOquery/reference/getGEO.html" class="external-link">getGEO</a></span><span class="op">(</span><span class="st">"GSE53053"</span><span class="op">)</span></span>
 <span><span class="va">es</span> <span class="op">&lt;-</span> <span class="va">ess</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
-<p>RNA-seq dataset from GEO do not contain the expression matrix, thus
-<code>exprs(es)</code> is empty:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p>GSE53053 is an RNA-seq dataset, and GEO database does not store
+RNA-seq expression matrices in a standard format (although it’s
+changing: <a href="https://www.ncbi.nlm.nih.gov/geo/info/rnaseqcounts.html" class="external-link uri">https://www.ncbi.nlm.nih.gov/geo/info/rnaseqcounts.html</a>).
+Thus <code>exprs(es)</code> is empty:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">es</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      GSM1281300 GSM1281301 GSM1281302 GSM1281303 GSM1281304 GSM1281305</span></span>
 <span><span class="co">#&gt;      GSM1281306 GSM1281307</span></span></code></pre></div>
-<p>However, a number of precomputed gene count tables are available at
-HSDS server ‘<a href="https://alserglab.wustl.edu/hsds/" class="external-link uri">https://alserglab.wustl.edu/hsds/</a>’. It features HDF5
-files with counts from ARCHS4 and DEE2 projects:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">'https://alserglab.wustl.edu/hsds/?domain=/counts'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/phantasusLite/man/getHSDSFileList.html" class="external-link">getHSDSFileList</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span></span>
+<p>However, projects like ARCHS4 and DEE2 provide count data for many
+RNA-seq samples, mostly for human and mouse, but also for other
+organisms. We made their data available for an easy remote access by
+setting up an HSDS server ‘<a href="https://alserglab.wustl.edu/hsds/" class="external-link uri">https://alserglab.wustl.edu/hsds/</a>’. It allows remote
+access to HDF5 files with counts from these projects:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hsdsURL</span> <span class="op">&lt;-</span> <span class="st">'https://alserglab.wustl.edu/hsds/?domain=/counts'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/phantasusLite/man/getHSDSFileList.html" class="external-link">getHSDSFileList</a></span><span class="op">(</span><span class="va">hsdsURL</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "/counts/archs4/Arabidopsis_thaliana_count_matrix.h5"    </span></span>
 <span><span class="co">#&gt;  [2] "/counts/archs4/Bos_taurus_count_matrix.h5"              </span></span>
 <span><span class="co">#&gt;  [3] "/counts/archs4/Caenorhabditis_elegans_count_matrix.h5"  </span></span>
@@ -252,23 +275,13 @@ files with counts from ARCHS4 and DEE2 projects:</p>
 <span><span class="co">#&gt; [18] "/counts/dee2/meta.h5"                                   </span></span>
 <span><span class="co">#&gt; [19] "/counts/dee2/mmusculus_star_matrix_20240409.h5"         </span></span>
 <span><span class="co">#&gt; [20] "/counts/dee2/rnorvegicus_star_matrix_20240409.h5"       </span></span>
-<span><span class="co">#&gt; [21] "/counts/dee2/scerevisiae_star_matrix_20240409.h5"       </span></span>
-<span><span class="co">#&gt; [22] "/counts/dee2_old/athaliana_star_matrix_20221107.h5"     </span></span>
-<span><span class="co">#&gt; [23] "/counts/dee2_old/celegans_star_matrix_20221107.h5"      </span></span>
-<span><span class="co">#&gt; [24] "/counts/dee2_old/dmelanogaster_star_matrix_20221107.h5" </span></span>
-<span><span class="co">#&gt; [25] "/counts/dee2_old/drerio_star_matrix_20211102.h5"        </span></span>
-<span><span class="co">#&gt; [26] "/counts/dee2_old/ecoli_star_matrix_20221107.h5"         </span></span>
-<span><span class="co">#&gt; [27] "/counts/dee2_old/hsapiens_star_matrix_20221107.h5"      </span></span>
-<span><span class="co">#&gt; [28] "/counts/dee2_old/meta.h5"                               </span></span>
-<span><span class="co">#&gt; [29] "/counts/dee2_old/mmusculus_star_matrix_20221107.h5"     </span></span>
-<span><span class="co">#&gt; [30] "/counts/dee2_old/rnorvegicus_star_matrix_20221107.h5"   </span></span>
-<span><span class="co">#&gt; [31] "/counts/dee2_old/scerevisiae_star_matrix_20221107.h5"</span></span></code></pre></div>
+<span><span class="co">#&gt; [21] "/counts/dee2/scerevisiae_star_matrix_20240409.h5"</span></span></code></pre></div>
 <p>GSE53053 dataset was sequenced from <em>Mus musculus</em> and we can
 get an expression matrix from the corresponding HDF5-file with DEE2
 data:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">file</span> <span class="op">&lt;-</span> <span class="st">"dee2/mmusculus_star_matrix_20240409.h5"</span></span>
-<span><span class="va">es</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/phantasusLite/man/loadCountsFromH5FileHSDS.html" class="external-link">loadCountsFromH5FileHSDS</a></span><span class="op">(</span><span class="va">es</span>, <span class="va">url</span>, <span class="va">file</span><span class="op">)</span></span>
+<span><span class="va">es</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/phantasusLite/man/loadCountsFromH5FileHSDS.html" class="external-link">loadCountsFromH5FileHSDS</a></span><span class="op">(</span><span class="va">es</span>, <span class="va">hsdsURL</span>, <span class="va">file</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">es</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    GSM1281300 GSM1281301 GSM1281302 GSM1281303 GSM1281304</span></span>
 <span><span class="co">#&gt; ENSMUSG00000102693          0          0          0          0          0</span></span>
@@ -284,11 +297,13 @@ data:</p>
 <span><span class="co">#&gt; ENSMUSG00000102851          0          0          0</span></span>
 <span><span class="co">#&gt; ENSMUSG00000103377          0          0          0</span></span>
 <span><span class="co">#&gt; ENSMUSG00000104017          0          0          0</span></span></code></pre></div>
-<p>Normally <code>loadCountsFromHSDS</code> can be used to automatically
-select the HDF5-file with the largest number of quantified samples:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p>Instead of specifying the particular file for
+<code>loadCountsFromH5FileHSDS</code>, function
+<code>loadCountsFromHSDS</code> can be used to automatically select the
+HDF5-file with the largest number of quantified samples:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">es</span> <span class="op">&lt;-</span> <span class="va">ess</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">es</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/phantasusLite/man/loadCountsFromHSDS.html" class="external-link">loadCountsFromHSDS</a></span><span class="op">(</span><span class="va">es</span>, <span class="va">url</span><span class="op">)</span></span>
+<span><span class="va">es</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/phantasusLite/man/loadCountsFromHSDS.html" class="external-link">loadCountsFromHSDS</a></span><span class="op">(</span><span class="va">es</span>, <span class="va">hsdsURL</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">es</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    GSM1281300 GSM1281301 GSM1281302 GSM1281303 GSM1281304</span></span>
 <span><span class="co">#&gt; ENSMUSG00000000001       1015        603        561        549        425</span></span>
@@ -305,14 +320,16 @@ select the HDF5-file with the largest number of quantified samples:</p>
 <span><span class="co">#&gt; ENSMUSG00000000037          0          0          0</span></span>
 <span><span class="co">#&gt; ENSMUSG00000000049          0          0          0</span></span></code></pre></div>
 <p>The counts are different from the previous values as ARCHS4 counts
-were used – ARCHS4 is prioritized when there are several files with the
-same number of samples:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+has been used: ARCHS4 is prioritized when there are several files with
+the same number of samples. The used file name can be obtained from the
+<code>experimentData</code> slot of the <code>ExpressionSet</code>
+object:</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/class.MIAME.html" class="external-link">preproc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/abstract.html" class="external-link">experimentData</a></span><span class="op">(</span><span class="va">es</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">gene_counts_source</span></span>
 <span><span class="co">#&gt; [1] "archs4/mouse_gene_v2.3.h5"</span></span></code></pre></div>
-<p>Further, gene symbols are also imported from ARCHS4 database and are
+<p>Further, gene symbols are also imported from the database and are
 available as feature data:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/featureData.html" class="external-link">fData</a></span><span class="op">(</span><span class="va">es</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    Gene symbol          ENSEMBLID</span></span>
 <span><span class="co">#&gt; ENSMUSG00000000001       Gnai3 ENSMUSG00000000001</span></span>
@@ -321,6 +338,78 @@ available as feature data:</p>
 <span><span class="co">#&gt; ENSMUSG00000000031         H19 ENSMUSG00000000031</span></span>
 <span><span class="co">#&gt; ENSMUSG00000000037       Scml2 ENSMUSG00000000037</span></span>
 <span><span class="co">#&gt; ENSMUSG00000000049        Apoh ENSMUSG00000000049</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
+</h3>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R version 4.4.1 (2024-06-14)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 22.04.4 LTS</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Matrix products: default</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; locale:</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              </span></span>
+<span><span class="co">#&gt;  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    </span></span>
+<span><span class="co">#&gt;  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 </span></span>
+<span><span class="co">#&gt;  [9] LC_ADDRESS=C               LC_TELEPHONE=C            </span></span>
+<span><span class="co">#&gt; [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: Etc/UTC</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attached base packages:</span></span>
+<span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; other attached packages:</span></span>
+<span><span class="co">#&gt; [1] limma_3.61.4        GEOquery_2.73.0     Biobase_2.65.0     </span></span>
+<span><span class="co">#&gt; [4] BiocGenerics_0.51.0 phantasusLite_1.3.0 phantasus_1.25.2   </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;   [1] DBI_1.2.3               opencpu_2.2.12          rlang_1.1.4            </span></span>
+<span><span class="co">#&gt;   [4] magrittr_2.0.3          matrixStats_1.3.0       compiler_4.4.1         </span></span>
+<span><span class="co">#&gt;   [7] RSQLite_2.3.7           png_0.1-8               systemfonts_1.1.0      </span></span>
+<span><span class="co">#&gt;  [10] vctrs_0.6.5             pkgconfig_2.0.3         crayon_1.5.3           </span></span>
+<span><span class="co">#&gt;  [13] fastmap_1.2.0           XVector_0.45.0          utf8_1.2.4             </span></span>
+<span><span class="co">#&gt;  [16] promises_1.3.0          rmarkdown_2.27          tzdb_0.4.0             </span></span>
+<span><span class="co">#&gt;  [19] ccaPP_0.3.3             UCSC.utils_1.1.0        ragg_1.3.2             </span></span>
+<span><span class="co">#&gt;  [22] purrr_1.0.2             bit_4.0.5               xfun_0.46              </span></span>
+<span><span class="co">#&gt;  [25] zlibbioc_1.51.1         cachem_1.1.0            GenomeInfoDb_1.41.1    </span></span>
+<span><span class="co">#&gt;  [28] jsonlite_1.8.8          blob_1.2.4              later_1.3.2            </span></span>
+<span><span class="co">#&gt;  [31] DelayedArray_0.31.9     rhdf5filters_1.17.0     Rhdf5lib_1.27.0        </span></span>
+<span><span class="co">#&gt;  [34] BiocParallel_1.39.0     parallel_4.4.1          R6_2.5.1               </span></span>
+<span><span class="co">#&gt;  [37] bslib_0.7.0             jquerylib_0.1.4         Rcpp_1.0.13            </span></span>
+<span><span class="co">#&gt;  [40] knitr_1.48              R.utils_2.12.3          readr_2.1.5            </span></span>
+<span><span class="co">#&gt;  [43] IRanges_2.39.2          httpuv_1.6.15           Matrix_1.7-0           </span></span>
+<span><span class="co">#&gt;  [46] tidyselect_1.2.1        abind_1.4-5             yaml_2.3.9             </span></span>
+<span><span class="co">#&gt;  [49] codetools_0.2-20        curl_5.2.1              lattice_0.22-6         </span></span>
+<span><span class="co">#&gt;  [52] tibble_3.2.1            webutils_1.2.0          withr_3.0.0            </span></span>
+<span><span class="co">#&gt;  [55] KEGGREST_1.45.1         askpass_1.2.0           evaluate_0.24.0        </span></span>
+<span><span class="co">#&gt;  [58] desc_1.4.3              xml2_1.3.6              Biostrings_2.73.1      </span></span>
+<span><span class="co">#&gt;  [61] pillar_1.9.0            MatrixGenerics_1.17.0   stats4_4.4.1           </span></span>
+<span><span class="co">#&gt;  [64] pcaPP_2.0-4             generics_0.1.3          S4Vectors_0.43.2       </span></span>
+<span><span class="co">#&gt;  [67] hms_1.1.3               ggplot2_3.5.1           munsell_0.5.1          </span></span>
+<span><span class="co">#&gt;  [70] scales_1.3.0            glue_1.7.0              tools_4.4.1            </span></span>
+<span><span class="co">#&gt;  [73] robustbase_0.99-3       data.table_1.15.4       fgsea_1.31.0           </span></span>
+<span><span class="co">#&gt;  [76] locfit_1.5-9.10         fs_1.6.4                mvtnorm_1.2-5          </span></span>
+<span><span class="co">#&gt;  [79] fastmatch_1.1-4         cowplot_1.1.3           rhdf5_2.49.0           </span></span>
+<span><span class="co">#&gt;  [82] grid_4.4.1              tidyr_1.3.1             AnnotationDbi_1.67.0   </span></span>
+<span><span class="co">#&gt;  [85] edgeR_4.3.5             colorspace_2.1-0        GenomeInfoDbData_1.2.12</span></span>
+<span><span class="co">#&gt;  [88] config_0.3.2            cli_3.6.3               brew_1.0-10            </span></span>
+<span><span class="co">#&gt;  [91] Rook_1.2                textshaping_0.4.0       rhdf5client_1.27.1     </span></span>
+<span><span class="co">#&gt;  [94] fansi_1.0.6             S4Arrays_1.5.5          svglite_2.1.3          </span></span>
+<span><span class="co">#&gt;  [97] dplyr_1.1.4             gtable_0.3.5            DEoptimR_1.1-3         </span></span>
+<span><span class="co">#&gt; [100] R.methodsS3_1.8.2       sass_0.4.9              digest_0.6.36          </span></span>
+<span><span class="co">#&gt; [103] SparseArray_1.5.25      rjson_0.2.21            htmlwidgets_1.6.4      </span></span>
+<span><span class="co">#&gt; [106] R.oo_1.26.0             memoise_2.0.1           htmltools_0.5.8.1      </span></span>
+<span><span class="co">#&gt; [109] pkgdown_2.1.0           lifecycle_1.0.4         httr_1.4.7             </span></span>
+<span><span class="co">#&gt; [112] statmod_1.5.0           mime_0.12               openssl_2.2.0          </span></span>
+<span><span class="co">#&gt; [115] bit64_4.0.5</span></span></code></pre></div>
 </div>
 </div>
   </div>
