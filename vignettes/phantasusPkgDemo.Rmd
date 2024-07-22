@@ -44,7 +44,7 @@ library(GEOquery)
 library(limma)
 ```
 
-## Phantasus setup
+## Working with local installation of Phantasus 
 
 Before starting a Phantasus server from R we need to configure it. 
 For this we can use interactive `setupPhantasus()` function. 
@@ -66,19 +66,23 @@ readLines(configFile) |> writeLines()
 ```
 
 Now we can start a server with `servePhantasus()` function. 
-Usually it can be ran with the default arguments, however for this vignette 
-we will set several options: `background=TRUE` makes server start in the background,
-`openInBrowser=FALSE` prevents automatic opening of the browser with Phantasus.
-Preloaded directory is recommended to be set by editing the configuration
-file, but also can be set via `preloaded` option.
+For simplicity we use a separate R session, starting it from the RStudio's terminal.
+In the command we specify `preloaded` option, as it's not set in the config file.
 
 ```{r}
 preloadedDir <- file.path(getwd(), "preloaded")
 dir.create(preloadedDir)
-server <- servePhantasus(background=TRUE, openInBrowser = FALSE, preloadedDir = preloadedDir)
+serveCommand <- sprintf('R --vanilla -e "phantasus::servePhantasus(preloaded=\'%s\')"', preloadedDir)
+message("Using the following shell command:")
+message(serveCommand)
 ```
 
-After server has started we can open Phantasus in the browser:
+Actually executing the above command with the help of RStudio's API:
+```{r eval=FALSE}
+serverTerminal <- rstudioapi::terminalExecute(serveCommand)
+```
+
+After the server has started we can open Phantasus in the browser:
 
 ```{r eval=FALSE}
 browseURL("http://localhost:8000/")
@@ -86,6 +90,8 @@ browseURL("http://localhost:8000/")
 
 Please refer to <https://ctlab.github.io/phantasus-doc/quick-start.html> for the vignette
 describing Phantasus functionality on the example of microarray dataset GSE53986.
+**Note:** the official mirror <https://alserglab.wustl.edu/phantasus/> can be used
+in case of problems setting up Phantasus in Bioconductor Workshop environment.
 
 Phantasus can also supports RNA-seq datasets, for which it relies on data from ARCHS4 and DEE2 projects.
 For example, we can open RNA-seq dataset GSE53053 by passing directly in the URL:
@@ -94,61 +100,83 @@ For example, we can open RNA-seq dataset GSE53053 by passing directly in the URL
 browseURL("http://localhost:8000/phantasus/index.html?geo=GSE53053")
 ```
 
-A vignette describing analysis of RNA-seq dataset GSE53053 can be found at <https://ctlab.github.io/phantasus-doc/tutorials/GSE53053/>.
+A vignette describing analysis of RNA-seq dataset GSE53053 can be found at <https://ctlab.github.io/phantasus-doc/tutorials/GSE53053/>. 
 
 A particular benefit of setting up Phantasus server is the ability to share
-preprocessed datasets. For example, let consider the dataset GSE14308
+preprocessed datasets. For example, let consider the dataset GSE53986
 which we can load and process using R:
 
 ```{r}
-gse14308 <- getGEO("GSE14308", AnnotGPL = TRUE)[[1]]
-gse14308$condition <- sub("-.*$", "", gse14308$title)
-pData(gse14308) <- pData(gse14308)[, c("title", "geo_accession", "condition")]
-gse14308 <- gse14308[, order(gse14308$condition)]
+gse53986 <- getGEO("GSE53986", AnnotGPL = TRUE)[[1]]
+gse53986$condition <- gse53986$`treatment:ch1`
+pData(gse53986) <- pData(gse53986)[, c("title", "geo_accession", "condition")]
 
-fData(gse14308) <- fData(gse14308)[, c("Gene ID", "Gene symbol")]
-exprs(gse14308) <- normalizeBetweenArrays(log2(exprs(gse14308)+1), method="quantile")
+fData(gse53986) <- fData(gse53986)[, c("Gene ID", "Gene symbol")]
+exprs(gse53986) <- normalizeBetweenArrays(log2(exprs(gse53986)), method="quantile")
 ```
 
-We can save it as an RDA file into the preloaded folder: 
+We can save it as an RDA file into the preloaded directory: 
 
 ```{r}
-save(gse14308, file=file.path(preloadedDir, "GSE14308_norm.rda"))
+save(gse53986, file=file.path(preloadedDir, "GSE53986_norm.rda"))
 ```
 
 Now we can open it using URL like this (with removed file extension):
 
 ```{r eval=FALSE}
-browseURL("http://localhost:8000/phantasus/index.html?preloaded=GSE14308_norm")
+browseURL("http://localhost:8000/phantasus/index.html?preloaded=GSE53986_norm")
 ```
 
-After we are done working we can stop the server:
+Further, Phantasus can generate a session link with _File/Get session link..._, which 
+allows to reopen or share the session, preserving the visuals (color scheme, sorting, etc.).
+Such links can be used to generate preloaded datasets as well, which would also preserve the visuals.
 
 ```{r}
-server$stop()
+sessionURL <- "https://alserglab.wustl.edu/phantasus/?session=x00000000000000" # use your own URL here
+generatePreloadedSession(sessionURL, preloadedName = "my_session", preloadedDir = preloadedDir)
+```
+
+This dataset now can be opened using the same-style URL as before:
+
+```{r eval=FALSE}
+browseURL("http://localhost:8000/phantasus/index.html?preloaded=my_session")
+```
+
+After finishing working with Phantasus we can kill the process
+with Ctrl-C, or via RStudio API:
+```{r eval=FALSE}
+rstudioapi::terminalKill(serverTerminal)
 ```
 
 ## Loading precomputed RNA-seq counts for GEO datasets in R
 
-Let's load dataset GSE53053 from GEO using `GEOquery` package:
+In this section we will explore how to use `phantasusLite` package to easily
+load precomputed RNA-seq matrices for GEO datasets. 
+
+First, let's load dataset GSE53053 from GEO using `GEOquery` package:
 
 ```{r message=FALSE}
 ess <- getGEO("GSE53053")
 es <- ess[[1]]
 ```
 
-RNA-seq dataset from GEO do not contain the expression matrix, thus `exprs(es)` is empty:
+GSE53053 is an RNA-seq dataset, and GEO database does not store RNA-seq expression matrices
+in a standard format (although it's changing: https://www.ncbi.nlm.nih.gov/geo/info/rnaseqcounts.html).
+Thus `exprs(es)` is empty:
 
 ```{r}
 head(exprs(es))
 ```
 
-However, a number of precomputed gene count tables are available at HSDS server  '<https://alserglab.wustl.edu/hsds/>'. It features HDF5 files with counts
-from ARCHS4 and DEE2 projects:
+However, projects like ARCHS4 and DEE2 provide count data for many RNA-seq samples,
+mostly for human and mouse, but also for other organisms.
+We made their data available for an easy remote access by setting up an HSDS server
+'<https://alserglab.wustl.edu/hsds/>'. It allows remote access to HDF5 files with counts
+from these projects:
 
 ```{r}
-url <- 'https://alserglab.wustl.edu/hsds/?domain=/counts'
-getHSDSFileList(url)
+hsdsURL <- 'https://alserglab.wustl.edu/hsds/?domain=/counts'
+getHSDSFileList(hsdsURL)
 ```
 
 GSE53053 dataset was sequenced from *Mus musculus* and we can get an expression matrix
@@ -160,8 +188,9 @@ es <- loadCountsFromH5FileHSDS(es, url, file)
 head(exprs(es))
 ```
 
-Normally `loadCountsFromHSDS` can be used to automatically select the HDF5-file with the largest
-number of quantified samples:
+Instead of specifying the particular file for `loadCountsFromH5FileHSDS`,
+function `loadCountsFromHSDS` can be used to automatically select the HDF5-file
+with the largest number of quantified samples:
 
 ```{r}
 es <- ess[[1]]
@@ -169,13 +198,21 @@ es <- loadCountsFromHSDS(es, url)
 head(exprs(es))
 ```
 
-The counts are different from the previous values as ARCHS4 counts were used -- ARCHS4 is prioritized when there are several files with the same number of samples:
+The counts are different from the previous values as ARCHS4 counts has been used:
+ARCHS4 is prioritized when there are several files with the same number of samples.
+The used file name can be obtained from the `experimentData` slot of the `ExpressionSet` object:
 
 ```{r}
 preproc(experimentData(es))$gene_counts_source
 ```
 
-Further, gene symbols are also imported from ARCHS4 database and are available as feature data:
+Further, gene symbols are also imported from the database and are available as feature data:
 ```{r}
 head(fData(es))
+```
+
+## Session info
+
+```{r}
+sessionInfo()
 ```
